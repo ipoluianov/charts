@@ -16,6 +16,7 @@ class MyApp extends StatelessWidget {
       title: 'Charts Analyzer',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        brightness: Brightness.dark,
         primarySwatch: Colors.blue,
       ),
       home: const MainForm(),

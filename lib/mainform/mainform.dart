@@ -1,4 +1,10 @@
+import 'package:charts/time_chart/time_chart.dart';
+import 'package:charts/time_chart/time_chart_settings_area.dart';
 import 'package:flutter/material.dart';
+
+import '../time_chart/color_by_index.dart';
+import '../time_chart/time_chart_settings.dart';
+import '../time_chart/time_chart_settings_series.dart';
 
 class MainForm extends StatefulWidget {
   const MainForm({super.key});
@@ -10,8 +16,27 @@ class MainForm extends StatefulWidget {
 }
 
 class MainFormState extends State<MainForm> {
+  TimeChartSettings _settings = TimeChartSettings([]);
+  @override
+  void initState() {
+    super.initState();
+    _settings.areas = [
+      TimeChartSettingsArea([]),
+    ];
+
+    _settings.areas[0].series.add(TimeChartSettingsSeries(
+        "https://test.u00.io:8401/bybit/BTCUSD",
+        [],
+        colorByIndex(_settings.areas[0].series.length)));
+    _settings.areas[0].series.add(TimeChartSettingsSeries(
+        "https://test.u00.io:8401/bybit/ETHUSD",
+        [],
+        colorByIndex(_settings.areas[0].series.length)));
+    _settings.areas[0].set("united_scale", "0");
+  }
+
   Widget buildContent(BuildContext context) {
-    return const Text("123");
+    return TimeChart("qqq", _settings, () {});
   }
 
   @override

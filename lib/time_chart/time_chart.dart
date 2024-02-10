@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:html';
 
 import 'package:charts/time_chart/time_chart_settings.dart';
 import 'package:flutter/gestures.dart';
@@ -29,7 +28,7 @@ class TimeRange {
 
 class TimeChartState extends State<TimeChart> with TickerProviderStateMixin {
   late Timer _timerUpdateTimeRange =
-      Timer.periodic(const Duration(milliseconds: 500), (timer) {});
+      Timer.periodic(const Duration(milliseconds: 1000), (timer) {});
 
   final DataFile _dataFile = DataFile();
 
@@ -37,6 +36,7 @@ class TimeChartState extends State<TimeChart> with TickerProviderStateMixin {
   void initState() {
     requestHistory();
     setUpdateTimePeriodMs(100);
+    loadDefaultTimeRange();
     super.initState();
   }
 
@@ -52,98 +52,17 @@ class TimeChartState extends State<TimeChart> with TickerProviderStateMixin {
     });
   }
 
-  String displayPeriodName(String value) {
-    String result = value;
-    if (value == "1min") {
-      result = "1m";
-    }
-    if (value == "5min") {
-      result = "5m";
-    }
-    if (value == "10min") {
-      result = "10m";
-    }
-    if (value == "30min") {
-      result = "30m";
-    }
-    if (value == "60min") {
-      result = "60m";
-    }
-    if (value == "3hours") {
-      result = "3H";
-    }
-    if (value == "6hours") {
-      result = "6H";
-    }
-    if (value == "12hours") {
-      result = "12H";
-    }
-    if (value == "24hours") {
-      result = "24H";
-    }
-    if (value == "7days") {
-      result = "7d";
-    }
-    if (value == "30days") {
-      result = "30d";
-    }
-    if (value == "180days") {
-      result = "180s";
-    }
-    if (value == "365days") {
-      result = "365d";
-    }
+  void setDisplayRange(double min, double max) {
+    widget._settings.horScale.setDefaultDisplayRange(min, max);
+  }
 
-    return result;
+  void loadDefaultTimeRange() {
+    setDisplayRange(DateTime(2020, 1, 1).microsecondsSinceEpoch.toDouble(),
+        DateTime(2020, 2, 2).microsecondsSinceEpoch.toDouble());
   }
 
   void updateTimes() {
-    int now = DateTime.now().microsecondsSinceEpoch;
-    double lastSeconds = 10;
-
-    if (dropdownValue == "1min") {
-      lastSeconds = 1 * 60;
-    }
-    if (dropdownValue == "5min") {
-      lastSeconds = 5 * 60;
-    }
-    if (dropdownValue == "10min") {
-      lastSeconds = 10 * 60;
-    }
-    if (dropdownValue == "30min") {
-      lastSeconds = 30 * 60;
-    }
-    if (dropdownValue == "60min") {
-      lastSeconds = 60 * 60;
-    }
-    if (dropdownValue == "3hours") {
-      lastSeconds = 3 * 60 * 60;
-    }
-    if (dropdownValue == "6hours") {
-      lastSeconds = 6 * 60 * 60;
-    }
-    if (dropdownValue == "12hours") {
-      lastSeconds = 12 * 60 * 60;
-    }
-    if (dropdownValue == "24hours") {
-      lastSeconds = 1 * 24 * 60 * 60;
-    }
-    if (dropdownValue == "7days") {
-      lastSeconds = 7 * 24 * 60 * 60;
-    }
-    if (dropdownValue == "30days") {
-      lastSeconds = 30 * 24 * 60 * 60;
-    }
-    if (dropdownValue == "180days") {
-      lastSeconds = 180 * 24 * 60 * 60;
-    }
-    if (dropdownValue == "365days") {
-      lastSeconds = 365 * 24 * 60 * 60;
-    }
-
     setState(() {
-      widget._settings.setDisplayRangeLast(lastSeconds);
-
       double w = widget._settings.horScale.width;
       if (w < 1) {
         return;
@@ -152,8 +71,6 @@ class TimeChartState extends State<TimeChart> with TickerProviderStateMixin {
       double r = widget._settings.horScale.displayMax -
           widget._settings.horScale.displayMin;
       int timePerPixel = (r / w).round();
-
-      //print("getHistory - ${timePerPixel} - ${r} / ${w}");
 
       for (int areaIndex = 0;
           areaIndex < widget._settings.areas.length;
@@ -184,118 +101,32 @@ class TimeChartState extends State<TimeChart> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  String dropdownValue = "5min";
-
-  Widget buildTimeButton(String timeString) {
-    bool isCurrent = dropdownValue == timeString;
-
-    return Container(
-      margin: const EdgeInsets.only(
-        left: 5,
-      ),
-      padding: const EdgeInsets.only(left: 0, top: 3, right: 0, bottom: 3),
-      //height: 25,
-      child: TextButton(
-        style: ButtonStyle(
-          foregroundColor: MaterialStateProperty.all(
-            isCurrent ? Colors.amber : Colors.white38,
-          ),
-          backgroundColor: MaterialStateProperty.all(
-            isCurrent ? Colors.black45 : Colors.black26,
-          ),
-        ),
-        onPressed: () {
-          setState(() {
-            dropdownValue = timeString;
-            widget._settings.setFixedHorScale(false);
-            widget._settings.resetToDefaultDisplayRange();
-          });
-
-          widget.onChanged();
-        },
-        child: SizedBox(
-          width: 70,
-          //height: 20,
-          child: Container(
-            //color: Colors.blueAccent,
-            child: Center(
-              child: Text(
-                displayPeriodName(timeString),
-                style: TextStyle(
-                    fontSize: isCurrent ? 16 : 14,
-                    fontWeight:
-                        isCurrent ? FontWeight.normal : FontWeight.normal),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget buildTimeFilterCombobox(context) {
-    return DropdownButton<String>(
-      value: dropdownValue,
-      onChanged: (String? newValue) {
-        setState(
-          () {
-            dropdownValue = newValue!;
-            widget._settings.setFixedHorScale(false);
-            widget._settings.resetToDefaultDisplayRange();
-          },
-        );
-      },
-      //itemHeight: 40,
-      //dropdownColor: Colors.teal.withOpacity(0.5),
-      style: TextStyle(
-        fontSize: 14,
-      ),
-      items: <String>[
-        "1min",
-        "5min",
-        "10min",
-        "30min",
-        "60min",
-        "3hours",
-        "6hours",
-        "12hours",
-        "24hours",
-        "7days",
-        "30days",
-        "180days",
-        "365days",
-      ].map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-    );
-  }
-
   Widget buildTimeFilterButtons(context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         List<Widget> buttons = [
-          buildTimeButton("5min"),
-          buildTimeButton("30min"),
-          buildTimeButton("60min"),
-          buildTimeButton("3hours"),
-          buildTimeButton("12hours"),
-          buildTimeButton("24hours"),
-          buildTimeButton("7days"),
+          OutlinedButton(
+              onPressed: () {
+                double min = widget._settings.horScale.displayMin;
+                double max = widget._settings.horScale.displayMax;
+                double timeRange = max - min;
+                widget._settings.horScale
+                    .setDisplayRange(min - timeRange / 2, max + timeRange / 2);
+              },
+              child: Text("-")),
+          OutlinedButton(
+              onPressed: () {
+                double min = widget._settings.horScale.displayMin;
+                double max = widget._settings.horScale.displayMax;
+                double timeRange = max - min;
+                widget._settings.horScale.setDisplayRange(
+                    min + timeRange * 0.1, max - timeRange * 0.1);
+              },
+              child: Text("+")),
         ];
 
-        int countOfButtons = (constraints.maxWidth / 120).round();
-        if (countOfButtons < 1) {
-          countOfButtons = 1;
-        }
-        if (countOfButtons > buttons.length) {
-          countOfButtons = buttons.length;
-        }
-
         return Row(
-          children: buttons.getRange(0, countOfButtons).toList(),
+          children: buttons,
         );
       },
     );
@@ -307,7 +138,6 @@ class TimeChartState extends State<TimeChart> with TickerProviderStateMixin {
       //height: 36,
       child: Row(
         children: [
-          buildTimeFilterCombobox(context),
           Expanded(child: buildTimeFilterButtons(context)),
         ],
       ),

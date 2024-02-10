@@ -1,7 +1,127 @@
+import 'dart:math';
+import 'package:http/http.dart' as http;
+
 class DataFile {
+  Map<String, String> files = {};
+
+  Future<void> fetchData(String url) async {
+    try {
+      print("fetchData $url");
+      files[url] = "";
+      http.get(Uri.parse(url)).then((value) {
+        print("OK-----------------");
+        String v = value.body;
+        files[url] = v;
+      }).catchError((e) {
+        files.remove(url);
+        print(e);
+      });
+    } catch (ex) {
+      files.remove(url);
+      print(ex);
+    }
+  }
+
+  String getFile(String url) {
+    //return "";
+    if (files.containsKey(url)) {
+      return files[url]!;
+    }
+    fetchData(url);
+    return "";
+  }
+
   List<DataItemHistoryChartItemValueResponse> getHistory(
-      String itemName, int minTime, int maxTime, int groupTimeRange) {
+      String itemName, int minTime, int maxTime, int groupTimeRange1) {
+    print(
+        "getHistory ${DateTime.fromMicrosecondsSinceEpoch(minTime)} ${DateTime.fromMicrosecondsSinceEpoch(maxTime)}");
     List<DataItemHistoryChartItemValueResponse> res = [];
+    double value = 0.1;
+
+    List<String> files = [];
+    for (int t = minTime - 86400000000;
+        t < maxTime + 86400000000;
+        t += 86400 * 1000000) {
+      DateTime dt = DateTime.fromMicrosecondsSinceEpoch(t);
+      //print();
+      String yearStr = dt.year.toString();
+      while (yearStr.length < 4) {
+        yearStr = "0$yearStr";
+      }
+      int month = dt.month;
+      String monthStr = month.toString();
+      while (monthStr.length < 2) {
+        monthStr = "0$monthStr";
+      }
+      String dayStr = dt.day.toString();
+      while (dayStr.length < 2) {
+        dayStr = "0$dayStr";
+      }
+      String fileName = "$yearStr-$monthStr-$dayStr.txt";
+      //files.add(fileName);
+
+      //print("get $fileName");
+      String content = getFile(itemName + "/$fileName");
+      //print("get $fileName ok");
+
+      List<String> lines = content.split("\r\n");
+
+      for (String line in lines) {
+        List<String> parts = line.split("\t");
+        if (parts.length < 5) {
+          continue;
+        }
+        var dt = parts[0];
+        var first = parts[1];
+        var min = parts[2];
+        var max = parts[3];
+        var last = parts[4];
+
+        value = double.parse(first);
+        int datetimeFirst = DateTime.parse(dt).microsecondsSinceEpoch;
+        //int datetimeLast = datetimeFirst + groupTimeRange - 1;
+        double firstValue = double.parse(first);
+        double lastValue = double.parse(last);
+        double minValue = double.parse(min);
+        double maxValue = double.parse(max);
+        double avgValue = value;
+        double sumValue = value;
+        int countOfValues = 1;
+        List<int> qualities = [];
+        bool hasGood = true;
+        bool hasBad = false;
+        String uom = "";
+
+        DataItemHistoryChartItemValueResponse item =
+            DataItemHistoryChartItemValueResponse(
+          datetimeFirst,
+          datetimeFirst,
+          firstValue,
+          lastValue,
+          minValue,
+          maxValue,
+          avgValue,
+          sumValue,
+          countOfValues,
+          qualities,
+          hasGood,
+          hasBad,
+          uom,
+        );
+        item.tag =
+            DateTime.fromMicrosecondsSinceEpoch(datetimeFirst).toString();
+        if (item.datetimeFirst >= minTime && item.datetimeLast <= maxTime) {
+          res.add(item);
+        }
+      }
+    }
+
+    /*res.sort(
+      (a, b) {
+        return a.datetimeFirst < b.datetimeFirst ? 1 : -1;
+      },
+    );*/
+
     return res;
   }
 }
@@ -20,6 +140,7 @@ class DataItemHistoryChartItemValueResponse {
   bool hasGood;
   bool hasBad;
   String uom;
+  String tag = "";
 
   DataItemHistoryChartItemValueResponse(
       this.datetimeFirst,

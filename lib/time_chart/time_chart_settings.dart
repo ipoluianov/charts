@@ -1,8 +1,17 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:charts/time_chart/time_chart_horizontal_scale.dart';
+import 'package:charts/time_chart/time_chart_prop_container.dart';
+import 'package:charts/time_chart/time_chart_settings_area.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+
+import '../chart_group_form/chart_group_data_items.dart';
+import 'map.dart';
+import 'time_chart_settings_series.dart';
+import 'time_chart_vertical_scale.dart';
+import "color_by_index.dart";
 
 class TimeChartSettings extends TimeChartPropContainer {
   List<TimeChartSettingsArea> areas;
@@ -58,7 +67,7 @@ class TimeChartSettings extends TimeChartPropContainer {
   bool showVerticalScale = true;
   Color backColor = Colors.transparent;
 
-  TimeChartSettings(Connection conn, this.areas) : super(conn);
+  TimeChartSettings(this.areas) : super();
 
   bool keyControl = false;
   bool keyAlt = false;
@@ -660,7 +669,7 @@ class TimeChartSettings extends TimeChartPropContainer {
         const Offset(0, 0) & Size(size.width, size.height),
         Paint()
           ..style = PaintingStyle.stroke
-          ..color = DesignColors.fore1()
+          ..color = Colors.lightBlue
           ..strokeWidth = 1);
   }
 
@@ -867,15 +876,12 @@ class TimeChartSettings extends TimeChartPropContainer {
     return result;
   }
 
-  factory TimeChartSettings.fromJson(
-      Connection conn, Map<String, dynamic> json) {
+  factory TimeChartSettings.fromJson(Map<String, dynamic> json) {
     print("loading settings ${json['areas']}");
-    var settings = TimeChartSettings(
-        conn,
-        json['areas']
-            .map<TimeChartSettingsArea>(
-                (model) => TimeChartSettingsArea.fromJson(conn, model))
-            .toList());
+    var settings = TimeChartSettings(json['areas']
+        .map<TimeChartSettingsArea>(
+            (model) => TimeChartSettingsArea.fromJson(model))
+        .toList());
     for (var propKey in json.keys) {
       if (propKey == "areas") {
         continue;
@@ -890,7 +896,7 @@ class TimeChartSettings extends TimeChartPropContainer {
     //MapItemPropPage pageMain = MapItemPropPage("Chart Group", const Icon(Icons.domain), []);
     MapItemPropPage pageDataItems =
         MapItemPropPage("Data Items", const Icon(Icons.data_usage), []);
-    pageDataItems.widget = ChartGroupDataItems(connection);
+    pageDataItems.widget = ChartGroupDataItems();
     {
       List<MapItemPropItem> props = [];
       //props.add(MapItemPropItem("", "update_period", "Data Source", "data_source", ""));
@@ -920,11 +926,11 @@ class TimeChartSettings extends TimeChartPropContainer {
     }
 
     if (areaIndex >= 0) {
-      areas[areaIndex].series.add(TimeChartSettingsSeries(connection,
+      areas[areaIndex].series.add(TimeChartSettingsSeries(
           dataItemName, [], colorByIndex(areas[areaIndex].series.length)));
     } else {
-      areas.add(TimeChartSettingsArea(connection, <TimeChartSettingsSeries>[
-        TimeChartSettingsSeries(connection, dataItemName, [], colorByIndex(0))
+      areas.add(TimeChartSettingsArea(<TimeChartSettingsSeries>[
+        TimeChartSettingsSeries(dataItemName, [], colorByIndex(0))
       ]));
     }
   }

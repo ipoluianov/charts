@@ -1,13 +1,12 @@
+import 'package:charts/time_chart/time_chart_prop_container.dart';
+import 'package:charts/time_chart/time_chart_settings_series.dart';
 import 'package:flutter/material.dart';
-import 'package:gazer_client/core/design.dart';
-import 'package:gazer_client/core/workspace/workspace.dart';
-import 'package:gazer_client/forms/chart_groups/chart_group_form/chart_group_data_items.dart';
-import 'package:gazer_client/forms/maps/map_form/main/map_item.dart';
-import 'package:gazer_client/widgets/time_chart/time_chart_horizontal_scale.dart';
-import 'package:gazer_client/widgets/time_chart/time_chart_prop_container.dart';
-import 'package:gazer_client/widgets/time_chart/time_chart_settings.dart';
-import 'package:gazer_client/widgets/time_chart/time_chart_settings_series.dart';
-import 'package:gazer_client/widgets/time_chart/time_chart_vertical_scale.dart';
+
+import '../chart_group_form/chart_group_data_items.dart';
+import 'map.dart';
+import 'time_chart_horizontal_scale.dart';
+import 'time_chart_settings.dart';
+import 'time_chart_vertical_scale.dart';
 
 class TimeChartSettingsArea extends TimeChartPropContainer {
   //bool unitedVerticalScale = false;
@@ -19,7 +18,7 @@ class TimeChartSettingsArea extends TimeChartPropContainer {
   bool selected = false;
 
   List<TimeChartSettingsSeries> series = [];
-  TimeChartSettingsArea(Connection conn, this.series) : super(conn) {
+  TimeChartSettingsArea(this.series) {
     props = {};
     initDefaultProperties();
     generateAndSetNewId();
@@ -137,16 +136,16 @@ class TimeChartSettingsArea extends TimeChartPropContainer {
     if (settings.showVerticalScale && series.isNotEmpty) {
       if (unitedVerticalScale()) {
         var s = series[0];
-        var vScaleColor = DesignColors.fore();
+        var vScaleColor = Colors.white;
         if (series.length == 1) {
-          vScaleColor = s.getColor("stroke_color");
+          vScaleColor = Colors.white;
         }
 
         s.vScale.draw(canvas, size, vScaleColor, 0, getBool("show_legend"), 1);
       } else {
         for (int seriesIndex = 0; seriesIndex < series.length; seriesIndex++) {
           var s = series[seriesIndex];
-          s.vScale.draw(canvas, size, s.getColor("stroke_color"), seriesIndex,
+          s.vScale.draw(canvas, size, Colors.green, seriesIndex,
               getBool("show_legend"), series.length);
         }
       }
@@ -187,7 +186,7 @@ class TimeChartSettingsArea extends TimeChartPropContainer {
         MapItemPropPage("Chart Area", const Icon(Icons.domain), []);
     MapItemPropPage pageDataItems =
         MapItemPropPage("Data Items", const Icon(Icons.data_usage), []);
-    pageDataItems.widget = ChartGroupDataItems(connection);
+    pageDataItems.widget = ChartGroupDataItems();
     {
       List<MapItemPropItem> props = [];
       props.add(
@@ -215,14 +214,11 @@ class TimeChartSettingsArea extends TimeChartPropContainer {
     return result;
   }
 
-  factory TimeChartSettingsArea.fromJson(
-      Connection conn, Map<String, dynamic> json) {
-    var settings = TimeChartSettingsArea(
-        conn,
-        json['series']
-            .map<TimeChartSettingsSeries>(
-                (model) => TimeChartSettingsSeries.fromJson(conn, model))
-            .toList());
+  factory TimeChartSettingsArea.fromJson(Map<String, dynamic> json) {
+    var settings = TimeChartSettingsArea(json['series']
+        .map<TimeChartSettingsSeries>(
+            (model) => TimeChartSettingsSeries.fromJson(model))
+        .toList());
     for (var propKey in json.keys) {
       if (propKey == "series") {
         continue;

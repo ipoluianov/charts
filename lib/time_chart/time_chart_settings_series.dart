@@ -2,19 +2,18 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:gazer_client/core/history/history.dart';
-import 'package:gazer_client/core/protocol/dataitem/data_item_history_chart.dart';
-import 'package:gazer_client/core/tools/hex_colors.dart';
-import 'package:gazer_client/core/workspace/workspace.dart';
-import 'package:gazer_client/forms/chart_groups/chart_group_form/chart_group_data_items.dart';
-import 'package:gazer_client/forms/maps/map_form/main/map_item.dart';
-import 'package:gazer_client/widgets/time_chart/time_chart_horizontal_scale.dart';
-import 'package:gazer_client/widgets/time_chart/time_chart_prop_container.dart';
-import 'package:gazer_client/widgets/time_chart/time_chart_settings.dart';
-import 'package:gazer_client/widgets/time_chart/time_chart_vertical_scale.dart';
 import 'package:intl/intl.dart' as international;
 
-import '../../core/history/history_loading_task.dart';
+import '../chart_group_form/chart_group_data_items.dart';
+import 'color_by_index.dart';
+import 'hex_colors.dart';
+import '../history/history_loading_task.dart';
+import 'history.dart';
+import 'map.dart';
+import 'time_chart_horizontal_scale.dart';
+import 'time_chart_prop_container.dart';
+import 'time_chart_settings.dart';
+import 'time_chart_vertical_scale.dart';
 
 class TimeChartSettingsSeries extends TimeChartPropContainer {
   double xOffset = 0;
@@ -30,9 +29,7 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
   List<DataItemHistoryChartItemValueResponse> itemHistory = [];
   List<HistoryLoadingTask> loadingTasks = [];
 
-  TimeChartSettingsSeries(
-      Connection conn, String itemName, this.itemHistory, Color color)
-      : super(conn) {
+  TimeChartSettingsSeries(String itemName, this.itemHistory, Color color) {
     props = {};
     initDefaultProperties();
     set("item_name", itemName);
@@ -85,8 +82,9 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
       var paint = Paint()
         ..style = PaintingStyle.stroke
         ..color = getColor("stroke_color")
+        //..color = Colors.white
         ..strokeJoin = StrokeJoin.round
-        ..strokeWidth = getDouble("stroke_width");
+        ..strokeWidth = 1;
 
       var paintQualityGood = Paint()
         ..style = PaintingStyle.stroke
@@ -337,10 +335,8 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
     return result;
   }
 
-  factory TimeChartSettingsSeries.fromJson(
-      Connection conn, Map<String, dynamic> json) {
-    var settings =
-        TimeChartSettingsSeries(conn, json['item_name'], [], Colors.amber);
+  factory TimeChartSettingsSeries.fromJson(Map<String, dynamic> json) {
+    var settings = TimeChartSettingsSeries(json['item_name'], [], Colors.amber);
     for (var propKey in json.keys) {
       settings.props[propKey] = json[propKey];
     }
@@ -353,7 +349,7 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
         MapItemPropPage("Series", const Icon(Icons.domain), []);
     MapItemPropPage pageDataItems =
         MapItemPropPage("Data Items", const Icon(Icons.data_usage), []);
-    pageDataItems.widget = ChartGroupDataItems(connection);
+    pageDataItems.widget = ChartGroupDataItems();
     {
       List<MapItemPropItem> props = [];
       props.add(

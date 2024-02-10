@@ -1,6 +1,9 @@
 import 'dart:math';
 
+import 'package:charts/time_chart/color_by_index.dart';
 import 'package:flutter/material.dart';
+
+import 'map.dart';
 
 abstract class IPropContainer {
   String id();
@@ -12,10 +15,9 @@ abstract class IPropContainer {
 
 class TimeChartPropContainer extends IPropContainer {
   late Map<String, String> props;
-  final Connection connection;
   String _id = "";
 
-  TimeChartPropContainer(this.connection) {
+  TimeChartPropContainer() {
     props = {};
   }
 
@@ -48,11 +50,6 @@ class TimeChartPropContainer extends IPropContainer {
   }
 
   @override
-  Connection getConnection() {
-    return connection;
-  }
-
-  @override
   List<MapItemPropPage> propList() {
     return [];
   }
@@ -81,10 +78,7 @@ class TimeChartPropContainer extends IPropContainer {
 
   Color getColor(String name) {
     var val = get(name);
-    if (val != "") {
-      return colorFromHex(val);
-    }
-    return Colors.transparent;
+    return colorFromHex(val);
   }
 
   void initDefaultProperties() {
