@@ -2,39 +2,104 @@ import 'dart:math';
 import 'package:http/http.dart' as http;
 
 class DataFile {
-  Map<String, String> files = {};
+  //Map<String, String> files = {};
+  Map<String, List<DataItemHistoryChartItemValueResponse>> filesParsed = {};
 
   Future<void> fetchData(String url) async {
     try {
       print("fetchData $url");
-      files[url] = "";
+      filesParsed[url] = [];
       http.get(Uri.parse(url)).then((value) {
-        print("OK-----------------");
+        //print("OK-----------------");
         String v = value.body;
-        files[url] = v;
+        //files[url] = v;
+        filesParsed[url] = parseFile(v);
       }).catchError((e) {
-        files.remove(url);
+        //files.remove(url);
+        filesParsed.remove(url);
         print(e);
       });
     } catch (ex) {
-      files.remove(url);
+      //files.remove(url);
+      filesParsed.remove(url);
       print(ex);
     }
   }
 
-  String getFile(String url) {
+  /*String getFile(String url) {
     //return "";
     if (files.containsKey(url)) {
       return files[url]!;
     }
     fetchData(url);
     return "";
+  }*/
+
+  List<DataItemHistoryChartItemValueResponse> getFileData(String url) {
+    //return "";
+    if (filesParsed.containsKey(url)) {
+      return filesParsed[url]!;
+    }
+    fetchData(url);
+    return [];
+  }
+
+  List<DataItemHistoryChartItemValueResponse> parseFile(String content) {
+    List<DataItemHistoryChartItemValueResponse> res = [];
+    List<String> lines = content.split("\r\n");
+
+    for (String line in lines) {
+      List<String> parts = line.split("\t");
+      if (parts.length < 5) {
+        continue;
+      }
+      var dt = parts[0];
+      var first = parts[1];
+      var min = parts[2];
+      var max = parts[3];
+      var last = parts[4];
+
+      double value = double.parse(first);
+      int datetimeFirst = DateTime.parse(dt).microsecondsSinceEpoch;
+      //int datetimeLast = datetimeFirst + groupTimeRange - 1;
+      double firstValue = double.parse(first);
+      double lastValue = double.parse(last);
+      double minValue = double.parse(min);
+      double maxValue = double.parse(max);
+      double avgValue = value;
+      double sumValue = value;
+      int countOfValues = 1;
+      List<int> qualities = [];
+      bool hasGood = true;
+      bool hasBad = false;
+      String uom = "";
+
+      DataItemHistoryChartItemValueResponse item =
+          DataItemHistoryChartItemValueResponse(
+        datetimeFirst,
+        datetimeFirst,
+        firstValue,
+        lastValue,
+        minValue,
+        maxValue,
+        avgValue,
+        sumValue,
+        countOfValues,
+        qualities,
+        hasGood,
+        hasBad,
+        uom,
+      );
+      item.tag = DateTime.fromMicrosecondsSinceEpoch(datetimeFirst).toString();
+      res.add(item);
+    }
+    return res;
   }
 
   List<DataItemHistoryChartItemValueResponse> getHistory(
       String itemName, int minTime, int maxTime, int groupTimeRange1) {
-    print(
-        "getHistory ${DateTime.fromMicrosecondsSinceEpoch(minTime)} ${DateTime.fromMicrosecondsSinceEpoch(maxTime)}");
+    //print(
+    //    "getHistory ${DateTime.fromMicrosecondsSinceEpoch(minTime)} ${DateTime.fromMicrosecondsSinceEpoch(maxTime)}");
     List<DataItemHistoryChartItemValueResponse> res = [];
     double value = 0.1;
 
@@ -61,59 +126,13 @@ class DataFile {
       //files.add(fileName);
 
       //print("get $fileName");
-      String content = getFile(itemName + "/$fileName");
-      //print("get $fileName ok");
-
-      List<String> lines = content.split("\r\n");
-
-      for (String line in lines) {
-        List<String> parts = line.split("\t");
-        if (parts.length < 5) {
-          continue;
-        }
-        var dt = parts[0];
-        var first = parts[1];
-        var min = parts[2];
-        var max = parts[3];
-        var last = parts[4];
-
-        value = double.parse(first);
-        int datetimeFirst = DateTime.parse(dt).microsecondsSinceEpoch;
-        //int datetimeLast = datetimeFirst + groupTimeRange - 1;
-        double firstValue = double.parse(first);
-        double lastValue = double.parse(last);
-        double minValue = double.parse(min);
-        double maxValue = double.parse(max);
-        double avgValue = value;
-        double sumValue = value;
-        int countOfValues = 1;
-        List<int> qualities = [];
-        bool hasGood = true;
-        bool hasBad = false;
-        String uom = "";
-
-        DataItemHistoryChartItemValueResponse item =
-            DataItemHistoryChartItemValueResponse(
-          datetimeFirst,
-          datetimeFirst,
-          firstValue,
-          lastValue,
-          minValue,
-          maxValue,
-          avgValue,
-          sumValue,
-          countOfValues,
-          qualities,
-          hasGood,
-          hasBad,
-          uom,
-        );
-        item.tag =
-            DateTime.fromMicrosecondsSinceEpoch(datetimeFirst).toString();
+      var items = getFileData(itemName + "/$fileName");
+      for (var item in items) {
         if (item.datetimeFirst >= minTime && item.datetimeLast <= maxTime) {
           res.add(item);
         }
       }
+      //print("get $fileName ok");
     }
 
     /*res.sort(

@@ -77,8 +77,6 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
         width - verticalScaleWidth111, height));
 
     {
-      vScale.animation();
-
       var paint = Paint()
         ..style = PaintingStyle.stroke
         ..color = getColor("stroke_color")

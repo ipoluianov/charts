@@ -10,25 +10,47 @@ class TimeChartVerticalScale {
   static const double defaultVerticalScaleWidth = 0;
   static const double defaultVerticalScaleWidthInline = 50;
 
+  TimeChartVerticalScale() {
+    print("TimeChartVerticalScale()!!!!!!!!!!!!!!!!!!");
+  }
+
   double xOffset = 0;
   double yOffset = 0;
   double width = 0;
   double height = 0;
   //double verticalScaleWidth = 0;
 
+  double vmovingStartScale = 1;
+  double vmovingStartDisplayedMin = 0;
+  double vmovingStartDisplayedMax = 0;
+
+  bool _fixedScale = false;
+  void setFixedScale(bool value) {
+    _fixedScale = value;
+  }
+
+  double signalOffset = 0;
+
   double verticalValuePadding01 = 0.2;
 
-  double targetDisplayedMinY = double.maxFinite;
-  double targetDisplayedMaxY = -double.maxFinite;
+  double _displayedMinY = 0;
+  double _displayedMaxY = 0;
 
-  double displayedMinY = 0;
-  double displayedMaxY = 0;
+  void setDisplayedMin(double min) {
+    //print("setDisplayedMin $min");
+    _displayedMinY = min;
+  }
 
-  void animation() {
-    var diff = displayedMinY = targetDisplayedMinY;
-    //print("diff: $diff");
-    displayedMinY = targetDisplayedMinY;
-    displayedMaxY = targetDisplayedMaxY;
+  void setDisplayedMax(double max) {
+    _displayedMaxY = max;
+  }
+
+  double getDisplayedMinY() {
+    return _displayedMinY;
+  }
+
+  double getDisplayedMaxY() {
+    return _displayedMaxY;
   }
 
   void calc(double x, double y, double w, double h) {
@@ -61,7 +83,7 @@ class TimeChartVerticalScale {
     var vertScalePointsCount = (height / 70).round();
 
     var verticalScale =
-        getBeautifulScale(displayedMinY, displayedMaxY, vertScalePointsCount);
+        getBeautifulScale(_displayedMinY, _displayedMaxY, vertScalePointsCount);
     for (var vertScaleItem in verticalScale) {
       var posY = verValueToPixel(vertScaleItem);
       if (posY.isNaN) {
@@ -106,41 +128,50 @@ class TimeChartVerticalScale {
 
   void updateVerticalScaleValues(
       List<DataItemHistoryChartItemValueResponse> history, bool united) {
+    if (_fixedScale) {
+      return;
+    }
+    double displayedMinY = _displayedMinY;
+    double displayedMaxY = _displayedMaxY;
+
     if (!united) {
-      targetDisplayedMinY = double.maxFinite;
-      targetDisplayedMaxY = -double.maxFinite;
+      displayedMinY = double.maxFinite;
+      displayedMaxY = -double.maxFinite;
     }
     for (int i = 0; i < history.length; i++) {
       var value = history[i];
-      if (value.minValue < targetDisplayedMinY) {
-        targetDisplayedMinY = value.minValue;
+      if (value.minValue < displayedMinY) {
+        displayedMinY = value.minValue;
       }
-      if (value.maxValue > targetDisplayedMaxY) {
-        targetDisplayedMaxY = value.maxValue;
+      if (value.maxValue > displayedMaxY) {
+        displayedMaxY = value.maxValue;
       }
     }
-    if (targetDisplayedMinY != targetDisplayedMaxY) {
-      targetDisplayedMinY = targetDisplayedMinY -
-          (targetDisplayedMaxY - targetDisplayedMinY) * verticalValuePadding01;
-      targetDisplayedMaxY = targetDisplayedMaxY +
-          (targetDisplayedMaxY - targetDisplayedMinY) * verticalValuePadding01;
+    if (displayedMinY != displayedMaxY) {
+      displayedMinY = displayedMinY -
+          (displayedMaxY - displayedMinY) * verticalValuePadding01;
+      displayedMaxY = displayedMaxY +
+          (displayedMaxY - displayedMinY) * verticalValuePadding01;
     } else {
-      targetDisplayedMinY = targetDisplayedMinY - 1;
-      targetDisplayedMaxY = targetDisplayedMaxY + 1;
+      displayedMinY = displayedMinY - 1;
+      displayedMaxY = displayedMaxY + 1;
     }
+
+    setDisplayedMin(displayedMinY);
+    setDisplayedMax(displayedMaxY);
   }
 
   void expandToZero() {
-    if (targetDisplayedMinY == double.maxFinite ||
-        targetDisplayedMaxY == -double.maxFinite) {
+    if (_displayedMinY == double.maxFinite ||
+        _displayedMaxY == -double.maxFinite) {
       return;
     }
 
-    if (targetDisplayedMinY > 0) {
-      targetDisplayedMinY = 0;
+    if (_displayedMinY > 0) {
+      setDisplayedMin(0);
     }
-    if (targetDisplayedMaxY < 0) {
-      targetDisplayedMaxY = 0;
+    if (_displayedMaxY < 0) {
+      setDisplayedMax(0);
     }
   }
 
@@ -198,16 +229,22 @@ class TimeChartVerticalScale {
     textPainter.paint(canvas, Offset(x, y));
   }
 
+  double onePixelValue() {
+    var diapason = _displayedMaxY - _displayedMinY;
+    var onePixelValue = height / diapason;
+    return onePixelValue;
+  }
+
   double verValueToPixel(double value) {
-    var diapason = displayedMaxY - displayedMinY;
-    var offsetOfValueFromMin = value - displayedMinY;
+    var diapason = _displayedMaxY - _displayedMinY;
+    var offsetOfValueFromMin = value - _displayedMinY;
     var onePixelValue = height / diapason;
     return height - onePixelValue * offsetOfValueFromMin;
   }
 
   double verPixelToValue(double pixels) {
-    var diapason = displayedMaxY - displayedMinY;
+    var diapason = _displayedMaxY - _displayedMinY;
     var onePixelValue = height / diapason;
-    return pixels / onePixelValue + displayedMinY;
+    return pixels / onePixelValue + _displayedMinY;
   }
 }

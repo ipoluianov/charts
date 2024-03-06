@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:charts/instruments_list/instruments_list_dialog.dart';
 import 'package:charts/time_chart/time_chart_settings.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -57,8 +58,8 @@ class TimeChartState extends State<TimeChart> with TickerProviderStateMixin {
   }
 
   void loadDefaultTimeRange() {
-    setDisplayRange(DateTime(2020, 1, 1).microsecondsSinceEpoch.toDouble(),
-        DateTime(2020, 2, 2).microsecondsSinceEpoch.toDouble());
+    setDisplayRange(DateTime(2023, 12, 1).microsecondsSinceEpoch.toDouble(),
+        DateTime(2024, 2, 10).microsecondsSinceEpoch.toDouble());
   }
 
   void updateTimes() {
@@ -123,6 +124,22 @@ class TimeChartState extends State<TimeChart> with TickerProviderStateMixin {
                     min + timeRange * 0.1, max - timeRange * 0.1);
               },
               child: Text("+")),
+          OutlinedButton(
+              onPressed: () {
+                for (var area in widget._settings.areas) {
+                  for (var ser in area.series) {
+                    ser.vScale.setFixedScale(false);
+                  }
+                }
+              },
+              child: Text("vReset")),
+          OutlinedButton(
+              onPressed: () {
+                showInstrumentsListDialog(context).then((value) {
+                  print("OK---- $value");
+                });
+              },
+              child: Text("Add")),
         ];
 
         return Row(
@@ -265,6 +282,34 @@ DragTarget<DataItemsObject>(
                     });
                     widget.onChanged();
                   },
+                  onScaleStart: (details) {
+                    print("GestureDetector::onScaleStart");
+                    FocusScope.of(context).requestFocus(_focusNode);
+                    widget._settings.startVMoving(
+                        details.localFocalPoint.dx, details.localFocalPoint.dy);
+                    widget.onChanged();
+                    /*map.startMoving(
+                        details.pointerCount, details.localFocalPoint);*/
+                  },
+                  onScaleUpdate: (details) {
+                    print(
+                        "GestureDetector::onScaleUpdate ${details.scale} ${details.verticalScale}");
+                    setState(() {
+                      widget._settings.updateVMoving(
+                          details.localFocalPoint.dy, details.verticalScale);
+                    });
+                    widget.onChanged();
+                    /*map.updateMoving(details.pointerCount,
+                        details.localFocalPoint, details.scale);*/
+                  },
+                  onScaleEnd: (details) {
+                    print("GestureDetector::onScaleEnd");
+                    //map.stopMoving(details.pointerCount);
+                    setState(() {
+                      widget._settings.finishVMoving();
+                    });
+                    widget.onChanged();
+                  },
                   onTapDown: (ev) {
                     setState(() {
                       widget._settings.onTapDown(ev.localPosition);
@@ -272,31 +317,8 @@ DragTarget<DataItemsObject>(
                     FocusScope.of(context).requestFocus(_focusNode);
                     widget.onChanged();
                   },
-                  /*onVerticalDragStart: (DragStartDetails ev) {
-                settings.startMovingY(ev.localPosition.dy);
-              },
-              onVerticalDragUpdate: (DragUpdateDetails ev) {
-                setState(() {
-                  settings.updateMovingY(ev.localPosition.dy);
-                });
-              },
-              onVerticalDragEnd: (DragEndDetails ev) {
-                setState(() {
-                  settings.finishMovingY();
-                });
-              },*/
-                  /*
-              onDoubleTap: () {
-                settings.doubleTap();
-              },*/
                   child: DragTarget<int>(
-                    onMove: (details) {
-                      //.findRenderObject();
-                      //Converts the global coordinates to the local coordinates of the current widget.
-                      //Offset center = box.globalToLocal(Offset(info.dx, info.dy));
-
-                      //print("MOVE: ${details.offset}");
-                    },
+                    onMove: (details) {},
                     builder: (
                       BuildContext context,
                       List<dynamic> accepted,

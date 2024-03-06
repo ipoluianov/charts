@@ -36,7 +36,7 @@ class TimeChartSettingsArea extends TimeChartPropContainer {
       var vScale = TimeChartVerticalScale();
       for (int seriesIndex = 0; seriesIndex < series.length; seriesIndex++) {
         var s = series[seriesIndex];
-        vScale.updateVerticalScaleValues(s.itemHistory, true);
+        //vScale.updateVerticalScaleValues(s.itemHistory, true);
         s.calc(
             x,
             y,
@@ -56,15 +56,15 @@ class TimeChartSettingsArea extends TimeChartPropContainer {
     } else {
       for (int seriesIndex = 0; seriesIndex < series.length; seriesIndex++) {
         var s = series[seriesIndex];
-        var vScale = TimeChartVerticalScale();
-        vScale.updateVerticalScaleValues(s.itemHistory, false);
+        //var vScale = TimeChartVerticalScale();
+        s.vScale.updateVerticalScaleValues(s.itemHistory, false);
         s.calc(
             x,
             y,
             w,
             h,
             vsWidth,
-            vScale,
+            s.vScale,
             seriesIndex * settings.legendItemHeight +
                 settings.legendItemHeight / 2 +
                 settings.legendItemYOffset);
@@ -145,7 +145,7 @@ class TimeChartSettingsArea extends TimeChartPropContainer {
       } else {
         for (int seriesIndex = 0; seriesIndex < series.length; seriesIndex++) {
           var s = series[seriesIndex];
-          s.vScale.draw(canvas, size, Colors.green, seriesIndex,
+          s.vScale.draw(canvas, size, s.getColor("stroke_color"), seriesIndex,
               getBool("show_legend"), series.length);
         }
       }

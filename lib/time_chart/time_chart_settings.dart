@@ -45,6 +45,10 @@ class TimeChartSettings extends TimeChartPropContainer {
   double movingOriginalDisplayMin = 0;
   double movingOriginalDisplayMax = 0;
 
+  bool vmovingIsStarted = false;
+  double vmovingStartPositionPixels = 0;
+  List<TimeChartVerticalScale> vmovingVScales = [];
+
   bool scalingIsStarted = false;
   double scalingStartPositionPixels = 0;
   double scalingOriginalDisplayMin = 0;
@@ -180,6 +184,50 @@ class TimeChartSettings extends TimeChartPropContainer {
     scalingOriginalDisplayMax = horScale.displayMax;
   }
 
+  void startVMoving(double x, double y) {
+    var vScale = vScaleByCoordinates(x, y);
+    if (vScale != null) {
+      vmovingIsStarted = true;
+      vmovingStartPositionPixels = y;
+      print("startVMoving $vScale");
+      vmovingVScales.clear();
+      vmovingVScales.add(vScale);
+      vScale.vmovingStartDisplayedMin = vScale.getDisplayedMinY();
+      vScale.vmovingStartDisplayedMax = vScale.getDisplayedMaxY();
+      return;
+    }
+
+    int areaIndex = findAreaIndexByXY(x, y);
+    if (areaIndex < 0) {
+      return;
+    }
+
+    vmovingIsStarted = true;
+    vmovingStartPositionPixels = y;
+    print("startVMoving $vScale");
+    vmovingVScales.clear();
+    for (var ser in areas[areaIndex].series) {
+      vmovingVScales.add(ser.vScale);
+      //ser.vScale.vmovingStartScale = 1;
+      ser.vScale.vmovingStartDisplayedMin = ser.vScale.getDisplayedMinY();
+      ser.vScale.vmovingStartDisplayedMax = ser.vScale.getDisplayedMaxY();
+    }
+  }
+
+  TimeChartVerticalScale? vScaleByCoordinates(double x, double y) {
+    int areaIndex = findAreaIndexByXY(x, y);
+    if (areaIndex < 0) {
+      return null;
+    }
+    double vertScaleWidth =
+        TimeChartVerticalScale.defaultVerticalScaleWidthInline;
+    if (x > vertScaleWidth * areas[areaIndex].series.length) {
+      return null;
+    }
+    int seriesIndex = (x / vertScaleWidth).truncate();
+    return areas[areaIndex].series[seriesIndex].vScale;
+  }
+
   void updateMoving(double x) {
     if (selectionForZoomIsStarted) {
       updateSelectingForZoom(x);
@@ -220,6 +268,24 @@ class TimeChartSettings extends TimeChartPropContainer {
       double shiftTime = pixelsToTime(x - movingStartPositionPixels);
       horScale.setDisplayRange(movingOriginalDisplayMin - shiftTime,
           movingOriginalDisplayMax - shiftTime);
+    }
+  }
+
+  void updateVMoving(double y, double scale) {
+    if (!vmovingIsStarted) return;
+    for (var vScale in vmovingVScales) {
+      vScale.setFixedScale(true);
+      double delta = y - vmovingStartPositionPixels;
+      double deltaScale = 1 - scale;
+      double onePixelValue = vScale.onePixelValue();
+      double displayDelta =
+          vScale.getDisplayedMaxY() - vScale.getDisplayedMinY();
+      vScale.setDisplayedMin(vScale.vmovingStartDisplayedMin +
+          delta / onePixelValue -
+          displayDelta * deltaScale * 0.5);
+      vScale.setDisplayedMax(vScale.vmovingStartDisplayedMax +
+          delta / onePixelValue +
+          displayDelta * deltaScale * 0.5);
     }
   }
 
@@ -270,6 +336,11 @@ class TimeChartSettings extends TimeChartPropContainer {
       selectionResizingRightIsStarted = false;
     }
     movingIsStarted = false;
+  }
+
+  void finishVMoving() {
+    vmovingIsStarted = false;
+    vmovingVScales.clear();
   }
 
   void finishMovingY() {
