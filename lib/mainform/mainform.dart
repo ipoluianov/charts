@@ -25,7 +25,7 @@ class MainFormState extends State<MainForm> {
     ];
 
     _settings.areas[0].series.add(TimeChartSettingsSeries(
-        "https://test.u00.io:8401/bybit/ARBUSDT",
+        "https://test.u00.io:8401/bybit/DOGEUSDT",
         [],
         colorByIndex(_settings.areas[0].series.length)));
     _settings.areas[0].series.add(TimeChartSettingsSeries(

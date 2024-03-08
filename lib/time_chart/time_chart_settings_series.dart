@@ -26,7 +26,7 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
   String displayName = "";
 
   TimeChartVerticalScale vScale = TimeChartVerticalScale();
-  List<DataItemHistoryChartItemValueResponse> itemHistory = [];
+  List<Item> itemHistory = [];
   List<HistoryLoadingTask> loadingTasks = [];
 
   TimeChartSettingsSeries(String itemName, this.itemHistory, Color color) {
@@ -45,11 +45,11 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
     width = w;
     height = h;
     yOffsetOfHeader = yHeaderOffset;
-    List<DataItemHistoryChartItemValueResponse> history = itemHistory;
+    List<Item> history = itemHistory;
     vScale = vSc;
   }
 
-  void drawPoint(DataItemHistoryChartItemValueResponse item) {}
+  void drawPoint(Item item) {}
 
   String itemName() {
     return get("item_name");
@@ -62,6 +62,38 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
     return displayName;
   }
 
+  List<Item> compact(TimeChartHorizontalScale hScale, List<Item> items) {
+    List<Item> result = [];
+    int lastPosX = -1;
+
+    Item currentItem = Item.makeDefault();
+    bool currentItemValid = false;
+
+    for (int i = 0; i < items.length; i++) {
+      var item = items[i];
+      var posX = hScale.horValueToPixel(item.datetimeFirst.toDouble()).round();
+      if (posX != lastPosX) {
+        // Push to results
+        if (currentItemValid) {
+          currentItem.lastValue = items[i - 1].lastValue;
+          result.add(currentItem);
+          currentItemValid = false;
+        }
+        currentItem = Item.copy(item);
+        currentItemValid = true;
+        lastPosX = posX;
+      } else {
+        if (item.minValue < currentItem.minValue) {
+          currentItem.minValue = item.minValue;
+        }
+        if (item.maxValue > currentItem.maxValue) {
+          currentItem.maxValue = item.maxValue;
+        }
+      }
+    }
+    return result;
+  }
+
   void draw(
       Canvas canvas,
       Size s,
@@ -70,7 +102,7 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
       bool smooth,
       int index,
       int totalSeriesCount) {
-    List<DataItemHistoryChartItemValueResponse> history = itemHistory;
+    List<Item> history = compact(hScale, itemHistory);
 
     canvas.save();
     canvas.clipRect(Rect.fromLTWH(xOffset + verticalScaleWidth111, 0,
@@ -141,29 +173,35 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
         pointsQuality = [];
       }
 
+      print("draw points: ${history.length}");
+
+      int lastPosX = 0;
       for (int i = 0; i < history.length; i++) {
         bool firstPoint = i == 0;
         var item = history[i];
+        var posX =
+            hScale.horValueToPixel(item.datetimeFirst.toDouble()).round();
 
-        var posX = hScale.horValueToPixel(item.datetimeFirst.toDouble());
+        double posXdbl = posX.toDouble();
         if (item.hasGood) {
           if (lastHasGood || firstPoint) {
-            points.add(Offset(posX, vScale.verValueToPixel(item.firstValue)));
+            points
+                .add(Offset(posXdbl, vScale.verValueToPixel(item.firstValue)));
           }
           if (item.minValue != item.firstValue) {
-            points.add(Offset(posX, vScale.verValueToPixel(item.minValue)));
+            points.add(Offset(posXdbl, vScale.verValueToPixel(item.minValue)));
           }
           if (item.maxValue != item.minValue) {
-            points.add(Offset(posX, vScale.verValueToPixel(item.maxValue)));
+            points.add(Offset(posXdbl, vScale.verValueToPixel(item.maxValue)));
           }
           if (item.lastValue != item.maxValue) {
-            points.add(Offset(posX, vScale.verValueToPixel(item.lastValue)));
+            points.add(Offset(posXdbl, vScale.verValueToPixel(item.lastValue)));
           }
         } else {
           funcDrawPoints();
         }
 
-        if (!item.hasBad) {
+        /*if (!item.hasBad) {
           if (pointsQuality.isEmpty ||
               (item.hasBad != lastHasBad || i == history.length - 1)) {
             pointsQuality.add(Offset(posX, yOffsetOfHeader));
@@ -178,7 +216,7 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
 
         if (item.hasBad != lastHasBad) {
           funcDrawPointsQuality();
-        }
+        }*/
 
         lastHasGood = item.hasGood;
         lastHasBad = item.hasBad;
@@ -219,7 +257,7 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
       bool smooth,
       int index,
       int totalSeriesCount) {
-    List<DataItemHistoryChartItemValueResponse> history = itemHistory;
+    List<Item> history = itemHistory;
 
     canvas.save();
     canvas.clipRect(Rect.fromLTWH(xOffset + verticalScaleWidth111, 0,

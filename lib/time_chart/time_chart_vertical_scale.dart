@@ -126,8 +126,7 @@ class TimeChartVerticalScale {
     canvas.restore();
   }
 
-  void updateVerticalScaleValues(
-      List<DataItemHistoryChartItemValueResponse> history, bool united) {
+  void updateVerticalScaleValues(List<Item> history, bool united) {
     if (_fixedScale) {
       return;
     }

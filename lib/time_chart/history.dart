@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class DataFile {
   //Map<String, String> files = {};
-  Map<String, List<DataItemHistoryChartItemValueResponse>> filesParsed = {};
+  Map<String, List<Item>> filesParsed = {};
 
   Future<void> fetchData(String url) async {
     try {
@@ -35,7 +35,7 @@ class DataFile {
     return "";
   }*/
 
-  List<DataItemHistoryChartItemValueResponse> getFileData(String url) {
+  List<Item> getFileData(String url) {
     //return "";
     if (filesParsed.containsKey(url)) {
       return filesParsed[url]!;
@@ -44,8 +44,8 @@ class DataFile {
     return [];
   }
 
-  List<DataItemHistoryChartItemValueResponse> parseFile(String content) {
-    List<DataItemHistoryChartItemValueResponse> res = [];
+  List<Item> parseFile(String content) {
+    List<Item> res = [];
     List<String> lines = content.split("\r\n");
 
     for (String line in lines) {
@@ -74,8 +74,7 @@ class DataFile {
       bool hasBad = false;
       String uom = "";
 
-      DataItemHistoryChartItemValueResponse item =
-          DataItemHistoryChartItemValueResponse(
+      Item item = Item(
         datetimeFirst,
         datetimeFirst,
         firstValue,
@@ -96,11 +95,11 @@ class DataFile {
     return res;
   }
 
-  List<DataItemHistoryChartItemValueResponse> getHistory(
+  List<Item> getHistory(
       String itemName, int minTime, int maxTime, int groupTimeRange1) {
     //print(
     //    "getHistory ${DateTime.fromMicrosecondsSinceEpoch(minTime)} ${DateTime.fromMicrosecondsSinceEpoch(maxTime)}");
-    List<DataItemHistoryChartItemValueResponse> res = [];
+    List<Item> res = [];
     double value = 0.1;
 
     List<String> files = [];
@@ -145,7 +144,7 @@ class DataFile {
   }
 }
 
-class DataItemHistoryChartItemValueResponse {
+class Item {
   int datetimeFirst;
   int datetimeLast;
   double firstValue;
@@ -161,7 +160,7 @@ class DataItemHistoryChartItemValueResponse {
   String uom;
   String tag = "";
 
-  DataItemHistoryChartItemValueResponse(
+  Item(
       this.datetimeFirst,
       this.datetimeLast,
       this.firstValue,
@@ -176,9 +175,29 @@ class DataItemHistoryChartItemValueResponse {
       this.hasBad,
       this.uom);
 
-  factory DataItemHistoryChartItemValueResponse.fromJson(
-      Map<String, dynamic> json) {
-    return DataItemHistoryChartItemValueResponse(
+  factory Item.makeDefault() {
+    return Item(0, 0, 0, 0, 0, 0, 0, 0, 0, [], false, false, "");
+  }
+
+  factory Item.copy(Item item) {
+    return Item(
+        item.datetimeFirst,
+        item.datetimeLast,
+        item.firstValue,
+        item.lastValue,
+        item.minValue,
+        item.maxValue,
+        item.avgValue,
+        item.sumValue,
+        item.countOfValues,
+        item.qualities,
+        item.hasGood,
+        item.hasBad,
+        "");
+  }
+
+  factory Item.fromJson(Map<String, dynamic> json) {
+    return Item(
       (double.tryParse("${json['tf']}") ?? 0).toInt(),
       (double.tryParse("${json['tl']}") ?? 0).toInt(),
       double.tryParse("${json['vf']}") ?? 0,

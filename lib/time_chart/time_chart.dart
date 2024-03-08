@@ -59,7 +59,7 @@ class TimeChartState extends State<TimeChart> with TickerProviderStateMixin {
 
   void loadDefaultTimeRange() {
     setDisplayRange(DateTime(2023, 12, 1).microsecondsSinceEpoch.toDouble(),
-        DateTime(2024, 2, 10).microsecondsSinceEpoch.toDouble());
+        DateTime(2024, 3, 15).microsecondsSinceEpoch.toDouble());
   }
 
   void updateTimes() {

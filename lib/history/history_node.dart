@@ -6,9 +6,9 @@ class HistoryNode {
 
   HistoryNode(this.connection);
 
-  List<DataItemHistoryChartItemValueResponse> getHistory(
+  List<Item> getHistory(
       String itemName, int minTime, int maxTime, int groupTimeRange) {
-    List<DataItemHistoryChartItemValueResponse> res = [];
+    List<Item> res = [];
     return res;
   }
 

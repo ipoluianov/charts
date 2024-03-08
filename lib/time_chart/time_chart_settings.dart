@@ -845,7 +845,7 @@ class TimeChartSettings extends TimeChartPropContainer {
         "select [" + text + "]", 14, color, TextAlign.left, true);
   }
 
-  double legendItemWidth = 250;
+  double legendItemWidth = 450;
   double legendItemHeight = 22;
   double legendItemXOffset = 0;
   double legendItemYOffset = 0;
