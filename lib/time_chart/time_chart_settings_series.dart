@@ -1,12 +1,9 @@
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' as international;
 
 import '../chart_group_form/chart_group_data_items.dart';
 import 'color_by_index.dart';
-import 'hex_colors.dart';
 import '../history/history_loading_task.dart';
 import 'history.dart';
 import 'map.dart';
@@ -46,7 +43,6 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
     width = w;
     height = h;
     yOffsetOfHeader = yHeaderOffset;
-    List<Item> history = itemHistory;
     vScale = vSc;
   }
 
@@ -86,7 +82,6 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
         ..strokeWidth = 1;
 
       List<Offset> points = [];
-      bool lastHasGood = false;
 
       void funcDrawPoints() {
         if (points.length == 1) {
@@ -152,7 +147,6 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
         ..strokeWidth = 1;
 
       List<Offset> points = [];
-      bool lastHasGood = false;
 
       //print("draw points: ${history.length}");
 
@@ -166,7 +160,6 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
       double pixelPerStick = posX2 - posX1;
 
       for (int i = 0; i < history.length; i++) {
-        bool firstPoint = i == 0;
         var item = history[i];
         double posXdbl = hScale.horValueToPixel(item.dtF.toDouble());
 
@@ -264,7 +257,6 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
 
       double statSum = 0;
       double statAVG = 0;
-      int statAVGCount = 0;
       double statMin = double.maxFinite;
       double statMax = -double.maxFinite;
       double statNum = 0;
@@ -273,10 +265,7 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
           var item = history[i];
           if (item.dtF > settings.selectionMin &&
               item.dtL < settings.selectionMax) {
-            if (item.hasGood) {
-              //statAVG += item.avgValue * item.countOfValues;
               statNum += item.countOfValues;
-              //statAVGCount += item.countOfValues;
               statSum += item.sumValue;
               if (item.minValue < statMin) {
                 statMin = item.minValue;
@@ -284,7 +273,6 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
               if (item.maxValue > statMax) {
                 statMax = item.maxValue;
               }
-            }
           }
         }
 
@@ -363,7 +351,7 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
         MapItemPropPage("Series", const Icon(Icons.domain), []);
     MapItemPropPage pageDataItems =
         MapItemPropPage("Data Items", const Icon(Icons.data_usage), []);
-    pageDataItems.widget = ChartGroupDataItems();
+    pageDataItems.widget = const ChartGroupDataItems();
     {
       List<MapItemPropItem> props = [];
       props.add(

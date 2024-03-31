@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:charts/time_chart/time_chart_horizontal_scale.dart';
@@ -192,7 +191,7 @@ class TimeChartSettings extends TimeChartPropContainer {
     if (vScale != null) {
       vmovingIsStarted = true;
       vmovingStartPositionPixels = y;
-      print("startVMoving $vScale");
+      //print("startVMoving $vScale");
       vmovingVScales.clear();
       vmovingVScales.add(vScale);
       vScale.vmovingStartDisplayedMin = vScale.getDisplayedMinY();
@@ -207,7 +206,7 @@ class TimeChartSettings extends TimeChartPropContainer {
 
     vmovingIsStarted = true;
     vmovingStartPositionPixels = y;
-    print("startVMoving $vScale");
+    //print("startVMoving $vScale");
     vmovingVScales.clear();
     for (var ser in areas[areaIndex].series) {
       vmovingVScales.add(ser.vScale);
@@ -567,8 +566,8 @@ class TimeChartSettings extends TimeChartPropContainer {
     horScale.calc(verticalScalesWidth, areaHeight * areas.length,
         size.width - verticalScalesWidth, showTimeScale ? 30 : 0);
 
-    drawVerticalLines(canvas, size);
-    drawMarkers(canvas, size);
+    //drawVerticalLines(canvas, size);
+    //drawMarkers(canvas, size);
 
     for (int areaIndex = 0; areaIndex < areas.length; areaIndex++) {
       var area = areas[areaIndex];

@@ -93,15 +93,10 @@ class TimeChartHorizontalScale {
 
       var dateStr = dateFormat.format(dt);
       var timeStr = timeFormat.format(dt);
-      var ms = dt.millisecond;
-      var msStr = "";
 
       if (beautifulScale.length > 1) {
         if (beautifulScale[1] - beautifulScale[0] >= 60 * 1000000) {
           timeStr = timeShortFormat.format(dt);
-        }
-        if (beautifulScale[1] - beautifulScale[0] < 1000000) {
-          msStr = '${ms} ms';
         }
       }
 

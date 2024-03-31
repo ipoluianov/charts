@@ -238,7 +238,7 @@ class TimeChartState extends State<TimeChart> with TickerProviderStateMixin {
               widget._settings.horScale.displayMax.round(),
               groupTimeSec * 1000000);
 
-          markSilence(data);
+          // markSilence(data);
 
           //smoothingItemsAvg(data);
 

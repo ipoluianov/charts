@@ -84,9 +84,6 @@ class DataFile {
         avgValue,
         sumValue,
         countOfValues,
-        qualities,
-        hasGood,
-        hasBad,
         uom,
       );
       item.tag = DateTime.fromMicrosecondsSinceEpoch(datetimeFirst).toString();
@@ -178,9 +175,6 @@ class Item {
   double avgValue;
   double sumValue;
   int countOfValues;
-  List<int> qualities;
-  bool hasGood;
-  bool hasBad;
   String uom;
   String tag = "";
 
@@ -194,13 +188,10 @@ class Item {
       this.avgValue,
       this.sumValue,
       this.countOfValues,
-      this.qualities,
-      this.hasGood,
-      this.hasBad,
       this.uom);
 
   factory Item.makeDefault() {
-    return Item(0, 0, 0, 0, 0, 0, 0, 0, 0, [], false, false, "");
+    return Item(0, 0, 0, 0, 0, 0, 0, 0, 0, "");
   }
 
   factory Item.copy(Item item) {
@@ -214,9 +205,6 @@ class Item {
         item.avgValue,
         item.sumValue,
         item.countOfValues,
-        item.qualities,
-        item.hasGood,
-        item.hasBad,
         "");
   }
 
@@ -231,9 +219,6 @@ class Item {
       double.tryParse("${json['va']}") ?? 0,
       double.tryParse("${json['vs']}") ?? 0,
       json['c'],
-      [],
-      json['has_good'],
-      json['has_bad'],
       json['uom'],
     );
   }

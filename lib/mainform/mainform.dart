@@ -26,7 +26,7 @@ class MainFormState extends State<MainForm> {
     ];
 
     _settings.areas[0].series.add(TimeChartSettingsSeries(
-        "https://test.u00.io:8401/bybit/BTCUSDT",
+        "https://test.u00.io:8401/bybit/ALGOUSDT",
         [],
         colorByIndex(_settings.areas[0].series.length)));
     _settings.areas[0].set("united_scale", "0");
