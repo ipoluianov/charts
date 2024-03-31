@@ -24,6 +24,7 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
   double verticalScaleWidth111 = 0;
   bool selected = false;
   String displayName = "";
+  String chartType = "candles";
 
   TimeChartVerticalScale vScale = TimeChartVerticalScale();
   List<Item> itemHistory = [];
@@ -62,39 +63,7 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
     return displayName;
   }
 
-  List<Item> compact(TimeChartHorizontalScale hScale, List<Item> items) {
-    List<Item> result = [];
-    int lastPosX = -1;
-
-    Item currentItem = Item.makeDefault();
-    bool currentItemValid = false;
-
-    for (int i = 0; i < items.length; i++) {
-      var item = items[i];
-      var posX = hScale.horValueToPixel(item.datetimeFirst.toDouble()).round();
-      if (posX != lastPosX) {
-        // Push to results
-        if (currentItemValid) {
-          currentItem.lastValue = items[i - 1].lastValue;
-          result.add(currentItem);
-          currentItemValid = false;
-        }
-        currentItem = Item.copy(item);
-        currentItemValid = true;
-        lastPosX = posX;
-      } else {
-        if (item.minValue < currentItem.minValue) {
-          currentItem.minValue = item.minValue;
-        }
-        if (item.maxValue > currentItem.maxValue) {
-          currentItem.maxValue = item.maxValue;
-        }
-      }
-    }
-    return result;
-  }
-
-  void draw(
+  void drawClassic(
       Canvas canvas,
       Size s,
       TimeChartHorizontalScale hScale,
@@ -102,7 +71,7 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
       bool smooth,
       int index,
       int totalSeriesCount) {
-    List<Item> history = compact(hScale, itemHistory);
+    List<Item> history = itemHistory;
 
     canvas.save();
     canvas.clipRect(Rect.fromLTWH(xOffset + verticalScaleWidth111, 0,
@@ -116,35 +85,12 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
         ..strokeJoin = StrokeJoin.round
         ..strokeWidth = 1;
 
-      var paintQualityGood = Paint()
-        ..style = PaintingStyle.stroke
-        ..color = Colors.green
-        ..strokeJoin = StrokeJoin.round
-        ..strokeWidth = 0.2;
-
-      var paintQualityBad = Paint()
-        ..style = PaintingStyle.stroke
-        ..color = Colors.red
-        ..strokeJoin = StrokeJoin.round
-        ..strokeCap = StrokeCap.round
-        ..strokeWidth = 5;
-
-      var paintLoading = Paint()
-        ..style = PaintingStyle.stroke
-        ..color = Colors.lightBlue
-        ..strokeJoin = StrokeJoin.round
-        ..strokeWidth = 1;
-
       List<Offset> points = [];
-      List<Offset> pointsQuality = [];
       bool lastHasGood = false;
-      bool lastHasBad = false;
 
       void funcDrawPoints() {
-        //print("points: ${points.length} hislen: ${history.length}");
         if (points.length == 1) {
           canvas.drawCircle(points[0], 1, paint..style = PaintingStyle.fill);
-          //canvas.drawPoints(PointMode.points, points, paint);
         } else {
           if (smooth) {
             canvas.drawPoints(PointMode.polygon, points,
@@ -152,100 +98,132 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
           } else {
             canvas.drawPoints(PointMode.polygon, points, paint);
           }
-          /*if (selected) {
-            canvas.drawPoints(PointMode.polygon, points, paint
-              ..strokeWidth = paint.strokeWidth + 4
-              ..strokeCap = StrokeCap.round
-                ..color = paint.color.withOpacity(0.2)
-            );
-          }*/
         }
         points = [];
       }
 
-      void funcDrawPointsQuality() {
-        var currentPaint = paintQualityGood;
-        if (lastHasBad) {
-          currentPaint = paintQualityBad;
-        }
+      //print("draw points: ${history.length}");
 
-        canvas.drawPoints(PointMode.polygon, pointsQuality, currentPaint);
-        pointsQuality = [];
-      }
-
-      print("draw points: ${history.length}");
-
-      int lastPosX = 0;
       for (int i = 0; i < history.length; i++) {
-        bool firstPoint = i == 0;
         var item = history[i];
-        var posX =
-            hScale.horValueToPixel(item.datetimeFirst.toDouble()).round();
-
-        double posXdbl = posX.toDouble();
-        if (item.hasGood) {
-          if (lastHasGood || firstPoint) {
-            points
-                .add(Offset(posXdbl, vScale.verValueToPixel(item.firstValue)));
-          }
-          if (item.minValue != item.firstValue) {
-            points.add(Offset(posXdbl, vScale.verValueToPixel(item.minValue)));
-          }
-          if (item.maxValue != item.minValue) {
-            points.add(Offset(posXdbl, vScale.verValueToPixel(item.maxValue)));
-          }
-          if (item.lastValue != item.maxValue) {
-            points.add(Offset(posXdbl, vScale.verValueToPixel(item.lastValue)));
-          }
-        } else {
-          funcDrawPoints();
+        if (item.countOfValues > 0) {
+          double posXdbl = hScale.horValueToPixel(item.dtF.toDouble());
+          points.add(Offset(posXdbl, vScale.verValueToPixel(item.avgValue)));
         }
-
-        /*if (!item.hasBad) {
-          if (pointsQuality.isEmpty ||
-              (item.hasBad != lastHasBad || i == history.length - 1)) {
-            pointsQuality.add(Offset(posX, yOffsetOfHeader));
-          }
-        } else {
-          if (pointsQuality.isEmpty ||
-              (item.hasBad != lastHasBad) ||
-              i == history.length - 1) {
-            pointsQuality.add(Offset(posX, yOffsetOfHeader));
-          }
-        }
-
-        if (item.hasBad != lastHasBad) {
-          funcDrawPointsQuality();
-        }*/
-
-        lastHasGood = item.hasGood;
-        lastHasBad = item.hasBad;
       }
 
       funcDrawPoints();
-      funcDrawPointsQuality();
+    }
 
-      if (loadingTasks.isNotEmpty) {
-        // draw loading
-        for (var loadingTask in loadingTasks) {
-          List<Offset> pointsLoadingTasks = [];
-          var posX1 = hScale.horValueToPixel(loadingTask.minTime.toDouble());
-          var posX2 = hScale.horValueToPixel(loadingTask.maxTime.toDouble());
-          pointsLoadingTasks.add(Offset(posX1, height - 5));
-          pointsLoadingTasks.add(Offset(posX2, height - 5));
-          canvas.drawPoints(
-              PointMode.polygon, pointsLoadingTasks, paintLoading);
+    canvas.restore();
+  }
+
+  void drawCandles(
+      Canvas canvas,
+      Size s,
+      TimeChartHorizontalScale hScale,
+      TimeChartSettings settings,
+      bool smooth,
+      int index,
+      int totalSeriesCount) {
+    List<Item> history = itemHistory;
+
+    canvas.save();
+    canvas.clipRect(Rect.fromLTWH(xOffset + verticalScaleWidth111, 0,
+        width - verticalScaleWidth111, height));
+
+    {
+      var paint = Paint()
+        ..style = PaintingStyle.stroke
+        ..color = getColor("stroke_color")
+        ..strokeJoin = StrokeJoin.round
+        ..strokeWidth = 1;
+
+      var paintRectUp = Paint()
+        ..style = PaintingStyle.fill
+        ..color = getColor("stroke_color")
+        ..strokeJoin = StrokeJoin.round
+        ..strokeWidth = 1;
+
+      var paintRectDown = Paint()
+        ..style = PaintingStyle.stroke
+        ..color = getColor("stroke_color")
+        ..strokeJoin = StrokeJoin.round
+        ..strokeWidth = 1;
+
+      List<Offset> points = [];
+      bool lastHasGood = false;
+
+      //print("draw points: ${history.length}");
+
+      double timeRangeAvg = 0;
+      for (int i = 0; i < history.length; i++) {
+        timeRangeAvg += history[i].dtL - history[i].dtF;
+      }
+      timeRangeAvg = timeRangeAvg / history.length;
+      double posX1 = hScale.horValueToPixel(0);
+      double posX2 = hScale.horValueToPixel(timeRangeAvg);
+      double pixelPerStick = posX2 - posX1;
+
+      for (int i = 0; i < history.length; i++) {
+        bool firstPoint = i == 0;
+        var item = history[i];
+        double posXdbl = hScale.horValueToPixel(item.dtF.toDouble());
+
+        points.add(Offset(posXdbl, vScale.verValueToPixel(item.minValue)));
+        points.add(Offset(posXdbl, vScale.verValueToPixel(item.maxValue)));
+
+        Paint paintRect = paintRectUp;
+        if (item.lastValue < item.firstValue) {
+          paintRect = paintRectDown;
+        }
+        canvas.drawRect(
+            Rect.fromLTRB(
+              posXdbl - pixelPerStick / 3,
+              vScale.verValueToPixel(item.firstValue),
+              posXdbl + pixelPerStick / 3,
+              vScale.verValueToPixel(item.lastValue),
+            ),
+            paintRect);
+
+        if (item.lastValue > item.firstValue) {
+          canvas.drawLine(
+              Offset(posXdbl, vScale.verValueToPixel(item.minValue)),
+              Offset(posXdbl, vScale.verValueToPixel(item.firstValue)),
+              paint);
+          canvas.drawLine(
+              Offset(posXdbl, vScale.verValueToPixel(item.maxValue)),
+              Offset(posXdbl, vScale.verValueToPixel(item.lastValue)),
+              paint);
+        } else {
+          canvas.drawLine(
+              Offset(posXdbl, vScale.verValueToPixel(item.maxValue)),
+              Offset(posXdbl, vScale.verValueToPixel(item.firstValue)),
+              paint);
+          canvas.drawLine(
+              Offset(posXdbl, vScale.verValueToPixel(item.minValue)),
+              Offset(posXdbl, vScale.verValueToPixel(item.lastValue)),
+              paint);
         }
       }
     }
 
-    //drawText(canvas, 0, 0, width - verticalScaleWidth - 10, 20, itemName, 14, Colors.yellowAccent, TextAlign.right);
-
     canvas.restore();
+  }
 
-    final f = international.NumberFormat("#.##########");
-    String formatValue(num n) {
-      return f.format(n);
+  void draw(
+      Canvas canvas,
+      Size s,
+      TimeChartHorizontalScale hScale,
+      TimeChartSettings settings,
+      bool smooth,
+      int index,
+      int totalSeriesCount) {
+    if (chartType == "candles") {
+      drawCandles(canvas, s, hScale, settings, smooth, index, totalSeriesCount);
+    }
+    if (chartType == "lines") {
+      drawClassic(canvas, s, hScale, settings, smooth, index, totalSeriesCount);
     }
   }
 
@@ -293,8 +271,8 @@ class TimeChartSettingsSeries extends TimeChartPropContainer {
       {
         for (int i = 0; i < history.length; i++) {
           var item = history[i];
-          if (item.datetimeFirst > settings.selectionMin &&
-              item.datetimeLast < settings.selectionMax) {
+          if (item.dtF > settings.selectionMin &&
+              item.dtL < settings.selectionMax) {
             if (item.hasGood) {
               //statAVG += item.avgValue * item.countOfValues;
               statNum += item.countOfValues;

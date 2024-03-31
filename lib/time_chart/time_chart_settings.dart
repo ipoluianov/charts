@@ -56,6 +56,9 @@ class TimeChartSettings extends TimeChartPropContainer {
 
   Offset hoverPos = const Offset(0, 0);
 
+  List<double> verticalLines = [];
+  List<Offset> markers = [];
+
   bool _editing = false;
   void setEditing(bool editing) {
     _editing = editing;
@@ -564,6 +567,9 @@ class TimeChartSettings extends TimeChartPropContainer {
     horScale.calc(verticalScalesWidth, areaHeight * areas.length,
         size.width - verticalScalesWidth, showTimeScale ? 30 : 0);
 
+    drawVerticalLines(canvas, size);
+    drawMarkers(canvas, size);
+
     for (int areaIndex = 0; areaIndex < areas.length; areaIndex++) {
       var area = areas[areaIndex];
       area.draw(canvas, size, horScale, this, areaIndex == areas.length - 1);
@@ -742,6 +748,32 @@ class TimeChartSettings extends TimeChartPropContainer {
           ..style = PaintingStyle.stroke
           ..color = Colors.lightBlue
           ..strokeWidth = 1);
+  }
+
+  void drawVerticalLines(Canvas canvas, Size size) {
+    for (var verticalLine in verticalLines) {
+      double posX = horScale.horValueToPixel(verticalLine);
+      canvas.drawLine(
+          Offset(posX, 0),
+          Offset(posX, size.height),
+          Paint()
+            ..color = Colors.white30
+            ..strokeWidth = 1
+            ..style = PaintingStyle.stroke);
+    }
+  }
+
+  void drawMarkers(Canvas canvas, Size size) {
+    for (var marker in markers) {
+      //print("Marker draw $marker");
+      double posX1 = horScale.horValueToPixel(marker.dx);
+      double posX2 = horScale.horValueToPixel(marker.dy);
+      canvas.drawRect(
+          Rect.fromLTWH(posX1, 0, posX2 - posX1, size.height),
+          Paint()
+            ..color = Colors.yellow.withOpacity(0.1)
+            ..style = PaintingStyle.fill);
+    }
   }
 
   void drawSelectionResizeArea(

@@ -107,7 +107,6 @@ class DataFile {
         t < maxTime + 86400000000;
         t += 86400 * 1000000) {
       DateTime dt = DateTime.fromMicrosecondsSinceEpoch(t);
-      //print();
       String yearStr = dt.year.toString();
       while (yearStr.length < 4) {
         yearStr = "0$yearStr";
@@ -122,31 +121,56 @@ class DataFile {
         dayStr = "0$dayStr";
       }
       String fileName = "$yearStr-$monthStr-$dayStr.txt";
-      //files.add(fileName);
-
-      //print("get $fileName");
       var items = getFileData(itemName + "/$fileName");
       for (var item in items) {
-        if (item.datetimeFirst >= minTime && item.datetimeLast <= maxTime) {
+        if (item.dtF >= minTime && item.dtL <= maxTime) {
           res.add(item);
         }
       }
-      //print("get $fileName ok");
     }
 
-    /*res.sort(
-      (a, b) {
-        return a.datetimeFirst < b.datetimeFirst ? 1 : -1;
-      },
-    );*/
+    if (res.isEmpty) {
+      return res;
+    }
 
-    return res;
+    List<Item> result = [];
+
+    int beginDT = res[0].dtF - res[0].dtF % groupTimeRange1;
+    int resIndex = 0;
+
+    for (int grDT = beginDT; grDT < maxTime; grDT += groupTimeRange1) {
+      Item grItem = Item.makeDefault();
+      grItem.dtF = grDT;
+      grItem.dtL = grDT + groupTimeRange1 - 1;
+      grItem.minValue = double.maxFinite;
+      grItem.maxValue = -double.maxFinite;
+
+      for (; resIndex < res.length; resIndex++) {
+        Item item = res[resIndex];
+        if (item.dtF >= grItem.dtF && item.dtL <= grItem.dtL) {
+          if (item.minValue < grItem.minValue) grItem.minValue = item.minValue;
+          if (item.maxValue > grItem.maxValue) grItem.maxValue = item.maxValue;
+          if (grItem.countOfValues < 1) {
+            grItem.firstValue = item.firstValue;
+          }
+          grItem.lastValue = item.lastValue;
+          grItem.countOfValues++;
+        } else {
+          break;
+        }
+      }
+
+      grItem.avgValue = (grItem.minValue + grItem.maxValue) / 2;
+
+      result.add(grItem);
+    }
+    return result;
   }
 }
 
 class Item {
-  int datetimeFirst;
-  int datetimeLast;
+  int dtF;
+  int dtL;
   double firstValue;
   double lastValue;
   double minValue;
@@ -161,8 +185,8 @@ class Item {
   String tag = "";
 
   Item(
-      this.datetimeFirst,
-      this.datetimeLast,
+      this.dtF,
+      this.dtL,
       this.firstValue,
       this.lastValue,
       this.minValue,
@@ -181,8 +205,8 @@ class Item {
 
   factory Item.copy(Item item) {
     return Item(
-        item.datetimeFirst,
-        item.datetimeLast,
+        item.dtF,
+        item.dtL,
         item.firstValue,
         item.lastValue,
         item.minValue,

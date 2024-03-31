@@ -22,12 +22,9 @@ class MainFormState extends State<MainForm> {
     super.initState();
     _settings.areas = [
       TimeChartSettingsArea([]),
+      //TimeChartSettingsArea([]),
     ];
 
-    _settings.areas[0].series.add(TimeChartSettingsSeries(
-        "https://test.u00.io:8401/bybit/DOGEUSDT",
-        [],
-        colorByIndex(_settings.areas[0].series.length)));
     _settings.areas[0].series.add(TimeChartSettingsSeries(
         "https://test.u00.io:8401/bybit/BTCUSDT",
         [],
