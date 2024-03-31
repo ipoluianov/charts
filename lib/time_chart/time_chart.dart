@@ -222,7 +222,7 @@ class TimeChartState extends State<TimeChart> with TickerProviderStateMixin {
       //print("time per pixel1 ${timePerPixel / 1000000}");
       timePerStick = calcTimeRange((timePerStick / 1000000).round()) * 1000000;
 
-      print("timePerStick ${timePerStick / 1000000}");
+      //print("timePerStick ${timePerStick / 1000000}");
 
       for (int areaIndex = 0;
           areaIndex < widget._settings.areas.length;
@@ -310,7 +310,7 @@ class TimeChartState extends State<TimeChart> with TickerProviderStateMixin {
                 widget._settings.horScale
                     .setDisplayRange(min - timeRange / 2, max + timeRange / 2);
               },
-              child: Text("-")),
+              child: const Text("-")),
           OutlinedButton(
               onPressed: () {
                 double min = widget._settings.horScale.displayMin;
@@ -319,7 +319,7 @@ class TimeChartState extends State<TimeChart> with TickerProviderStateMixin {
                 widget._settings.horScale.setDisplayRange(
                     min + timeRange * 0.1, max - timeRange * 0.1);
               },
-              child: Text("+")),
+              child: const Text("+")),
           OutlinedButton(
               onPressed: () {
                 for (var area in widget._settings.areas) {
@@ -328,14 +328,14 @@ class TimeChartState extends State<TimeChart> with TickerProviderStateMixin {
                   }
                 }
               },
-              child: Text("vReset")),
+              child: const Text("vReset")),
           OutlinedButton(
               onPressed: () {
                 showInstrumentsListDialog(context).then((value) {
-                  print("OK---- $value");
+                  //print("OK---- $value");
                 });
               },
-              child: Text("Add")),
+              child: const Text("Add")),
           OutlinedButton(
               onPressed: () {
                 chartType = "candles";
@@ -554,7 +554,7 @@ class TimeChartState extends State<TimeChart> with TickerProviderStateMixin {
                     widget.onChanged();
                   },
                   onScaleStart: (details) {
-                    print("GestureDetector::onScaleStart");
+                    //print("GestureDetector::onScaleStart");
                     FocusScope.of(context).requestFocus(_focusNode);
                     widget._settings.startVMoving(
                         details.localFocalPoint.dx, details.localFocalPoint.dy);
@@ -563,8 +563,6 @@ class TimeChartState extends State<TimeChart> with TickerProviderStateMixin {
                         details.pointerCount, details.localFocalPoint);*/
                   },
                   onScaleUpdate: (details) {
-                    print(
-                        "GestureDetector::onScaleUpdate ${details.scale} ${details.verticalScale}");
                     setState(() {
                       widget._settings.updateVMoving(
                           details.localFocalPoint.dy, details.verticalScale);
@@ -574,7 +572,7 @@ class TimeChartState extends State<TimeChart> with TickerProviderStateMixin {
                         details.localFocalPoint, details.scale);*/
                   },
                   onScaleEnd: (details) {
-                    print("GestureDetector::onScaleEnd");
+                    //print("GestureDetector::onScaleEnd");
                     //map.stopMoving(details.pointerCount);
                     setState(() {
                       widget._settings.finishVMoving();
@@ -611,7 +609,7 @@ class TimeChartState extends State<TimeChart> with TickerProviderStateMixin {
                     onAcceptWithDetails: (details) {
                       if (lastRenderBox_ != null) {
                         //var localOffset = lastRenderBox_!.globalToLocal(details.offset);
-                        var data = details.data;
+                        //var data = details.data;
                         setState(() {
                           //widget._settings.addSeries(data.name);
                         });

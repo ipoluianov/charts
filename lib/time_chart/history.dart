@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:http/http.dart' as http;
 
 class DataFile {
@@ -7,7 +6,7 @@ class DataFile {
 
   Future<void> fetchData(String url) async {
     try {
-      print("fetchData $url");
+      //print("fetchData $url");
       filesParsed[url] = [];
       http.get(Uri.parse(url)).then((value) {
         //print("OK-----------------");
@@ -17,12 +16,12 @@ class DataFile {
       }).catchError((e) {
         //files.remove(url);
         filesParsed.remove(url);
-        print(e);
+        //print(e);
       });
     } catch (ex) {
       //files.remove(url);
       filesParsed.remove(url);
-      print(ex);
+      //print(ex);
     }
   }
 
@@ -69,9 +68,6 @@ class DataFile {
       double avgValue = value;
       double sumValue = value;
       int countOfValues = 1;
-      List<int> qualities = [];
-      bool hasGood = true;
-      bool hasBad = false;
       String uom = "";
 
       Item item = Item(
@@ -97,9 +93,9 @@ class DataFile {
     //print(
     //    "getHistory ${DateTime.fromMicrosecondsSinceEpoch(minTime)} ${DateTime.fromMicrosecondsSinceEpoch(maxTime)}");
     List<Item> res = [];
-    double value = 0.1;
+    //double value = 0.1;
 
-    List<String> files = [];
+    //List<String> files = [];
     for (int t = minTime - 86400000000;
         t < maxTime + 86400000000;
         t += 86400 * 1000000) {
@@ -118,7 +114,7 @@ class DataFile {
         dayStr = "0$dayStr";
       }
       String fileName = "$yearStr-$monthStr-$dayStr.txt";
-      var items = getFileData(itemName + "/$fileName");
+      var items = getFileData("$itemName/$fileName");
       for (var item in items) {
         if (item.dtF >= minTime && item.dtL <= maxTime) {
           res.add(item);

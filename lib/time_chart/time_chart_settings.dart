@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:charts/time_chart/time_chart_horizontal_scale.dart';
 import 'package:charts/time_chart/time_chart_prop_container.dart';
 import 'package:charts/time_chart/time_chart_settings_area.dart';
@@ -873,7 +871,7 @@ class TimeChartSettings extends TimeChartPropContainer {
           ..style = PaintingStyle.stroke
           ..strokeWidth = borderWidth);
     drawText(canvas, 5, index * btnHeight, btnWidth - 10, btnHeight,
-        "select [" + text + "]", 14, color, TextAlign.left, true);
+        "select [$text]", 14, color, TextAlign.left, true);
   }
 
   double legendItemWidth = 450;
@@ -979,7 +977,7 @@ class TimeChartSettings extends TimeChartPropContainer {
   }
 
   factory TimeChartSettings.fromJson(Map<String, dynamic> json) {
-    print("loading settings ${json['areas']}");
+    //print("loading settings ${json['areas']}");
     var settings = TimeChartSettings(json['areas']
         .map<TimeChartSettingsArea>(
             (model) => TimeChartSettingsArea.fromJson(model))
@@ -1000,7 +998,7 @@ class TimeChartSettings extends TimeChartPropContainer {
         MapItemPropPage("Data Items", const Icon(Icons.data_usage), []);
     pageDataItems.widget = ChartGroupDataItems();
     {
-      List<MapItemPropItem> props = [];
+      //List<MapItemPropItem> props = [];
       //props.add(MapItemPropItem("", "update_period", "Data Source", "data_source", ""));
       //pageMain.groups.add(MapItemPropGroup("Data Source", true, props));
     }
